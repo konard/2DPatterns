@@ -59,7 +59,7 @@ namespace _2DPatterns
             var width = _image.Width;
             var height = _image.Height;
 
-            KeyValuePair<ulong[], ulong[]>[,] matrix = new KeyValuePair<ulong[], ulong[]>[width, height];
+            KeyValuePair<ulong[], ulong[]>[,] matrix = new KeyValuePair<ulong[], ulong[]>[height, width];
 
             for (var y = 0; y < height; y++)
             {
@@ -99,7 +99,7 @@ namespace _2DPatterns
                         stack.Push(element);
                         var pair = new KeyValuePair<ulong[], ulong[]>(stack.ToArray(), default);
                         stack.Pop();
-                        matrix[x++, y] = pair;
+                        matrix[y, x++] = pair;
                         return true;
                     });
             }
@@ -121,11 +121,11 @@ namespace _2DPatterns
                     checkedElement => true,
                     element =>
                     {
-                        var pair = matrix[x, y];
+                        var pair = matrix[y, x];
                         stack.Push(element);
                         pair = new KeyValuePair<ulong[], ulong[]>(pair.Key, stack.ToArray());
                         stack.Pop();
-                        matrix[x, y++] = pair;
+                        matrix[y++, x] = pair;
                         return true;
                     });
             }
@@ -160,7 +160,7 @@ namespace _2DPatterns
 
             // Build matrix of levels on 2D plane (as in optimal variant algorithm)
 
-            var levels = new ulong[width, height];
+            var levels = new ulong[height, width];
 
             var topBottom = 0UL;
             var leftRight = 0UL;
@@ -175,12 +175,12 @@ namespace _2DPatterns
             {
                 for (int x = 1; x < lastX; x++)
                 {
-                    topBottom = GetFrequency(matrix[x, y - 1].Key[0], matrix[x, y].Key[0]);
-                    leftRight = GetFrequency(matrix[x - 1, y].Key[0], matrix[x, y].Key[0]);
-                    bottomTop = GetFrequency(matrix[x, y].Key[0], matrix[x, y + 1].Key[0]);
-                    rightLeft = GetFrequency(matrix[x, y].Key[0], matrix[x + 1, y].Key[0]);
+                    topBottom = GetFrequency(matrix[y - 1, x].Key[0], matrix[y, x].Key[0]);
+                    leftRight = GetFrequency(matrix[y, x - 1].Key[0], matrix[y, x].Key[0]);
+                    bottomTop = GetFrequency(matrix[y, x].Key[0], matrix[y + 1, x].Key[0]);
+                    rightLeft = GetFrequency(matrix[y, x].Key[0], matrix[y, x + 1].Key[0]);
 
-                    levels[x, y] = Math.Max(Math.Max(topBottom, leftRight), Math.Max(bottomTop, rightLeft));
+                    levels[y, x] = Math.Max(Math.Max(topBottom, leftRight), Math.Max(bottomTop, rightLeft));
                 }
             }
 
@@ -190,7 +190,7 @@ namespace _2DPatterns
             //{
             //    for (int x = 1; x < lastX; x++)
             //    {
-            //        Console.Write("{0:0000}", levels[x, y]);
+            //        Console.Write("{0:0000}", levels[y, x]);
             //        Console.Write(' ');
             //    }
             //    Console.WriteLine();
@@ -198,7 +198,7 @@ namespace _2DPatterns
 
             // Black and white (split to two colors)
 
-            var contrastedLevels = new ulong[width, height];
+            var contrastedLevels = new ulong[height, width];
 
             var minimum = ulong.MaxValue;
             var maximum = ulong.MinValue;
@@ -207,7 +207,7 @@ namespace _2DPatterns
             {
                 for (int x = 1; x < lastX; x++)
                 {
-                    var level = levels[x, y];
+                    var level = levels[y, x];
                     minimum = minimum > level ? level : minimum;
                 }
             }
@@ -216,7 +216,7 @@ namespace _2DPatterns
             {
                 for (int x = 1; x < lastX; x++)
                 {
-                    var level = levels[x, y];
+                    var level = levels[y, x];
                     maximum = maximum < level ? level : maximum;
                 }
             }
@@ -227,7 +227,7 @@ namespace _2DPatterns
             {
                 for (int x = 1; x < lastX; x++)
                 {
-                    contrastedLevels[x, y] = levels[x, y] > middle ? 0UL : 1UL; // the most frequent should be background (zero)
+                    contrastedLevels[y, x] = levels[y, x] > middle ? 0UL : 1UL; // the most frequent should be background (zero)
                 }
             }
 
@@ -237,7 +237,7 @@ namespace _2DPatterns
             //{
             //    for (int x = 1; x < lastX; x++)
             //    {
-            //        Console.Write("{0:0}", contrastedLevels[x, y]);
+            //        Console.Write("{0:0}", contrastedLevels[y, x]);
             //    }
             //    Console.WriteLine();
             //}
@@ -250,7 +250,7 @@ namespace _2DPatterns
                 {
                     for (int x = 1; x < lastX; x++)
                     {
-                        if (contrastedLevels[x, y] > 0)
+                        if (contrastedLevels[y, x] > 0)
                         {
                             pixels.SetPixel(x, y, new byte[] { 255, 255, 255, 255 });
                         }
